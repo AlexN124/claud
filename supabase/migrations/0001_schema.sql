@@ -59,6 +59,12 @@ create or replace view season_list as
 select distinct season from games order by season desc;
 
 -- Per-player, per-season aggregate (drives leaderboards & player pages)
+-- Shooting splits (fg_pct/fg3_pct/ft_pct) and the advanced metrics below are all
+-- ratios of season totals (sum/sum), not averages of each game's percentage — the
+-- latter overweights low-attempt games. Since every average here shares the same
+-- denominator (games_played), sum(x)/sum(y) reduces to avg(x)/avg(y), so we can
+-- compute season-accurate ratios directly from the per-game averages without a
+-- second pass over player_game_stats.
 create or replace view player_season_stats as
 select
   pgs.player_id,
@@ -73,9 +79,40 @@ select
   round(avg(pgs.stl)::numeric, 1)            as stl_pg,
   round(avg(pgs.blk)::numeric, 1)            as blk_pg,
   round(avg(pgs.tov)::numeric, 1)            as tov_pg,
-  round(avg(pgs.fg_pct)::numeric, 3)         as fg_pct,
-  round(avg(pgs.fg3_pct)::numeric, 3)        as fg3_pct,
-  round(avg(pgs.ft_pct)::numeric, 3)         as ft_pct,
+  round(avg(pgs.fgm)::numeric, 1)            as fgm_pg,
+  round(avg(pgs.fga)::numeric, 1)            as fga_pg,
+  round(avg(pgs.fg3m)::numeric, 1)           as fg3m_pg,
+  round(avg(pgs.fg3a)::numeric, 1)           as fg3a_pg,
+  round(avg(pgs.ftm)::numeric, 1)            as ftm_pg,
+  round(avg(pgs.fta)::numeric, 1)            as fta_pg,
+  round(
+    nullif(avg(pgs.fgm), 0) / nullif(avg(pgs.fga), 0)
+  ::numeric, 3)                              as fg_pct,
+  round(
+    nullif(avg(pgs.fg3m), 0) / nullif(avg(pgs.fg3a), 0)
+  ::numeric, 3)                              as fg3_pct,
+  round(
+    nullif(avg(pgs.ftm), 0) / nullif(avg(pgs.fta), 0)
+  ::numeric, 3)                              as ft_pct,
+  -- True shooting %: points per shooting possession, weighting free throws at 0.44
+  round(
+    avg(pgs.pts) / nullif(2 * (avg(pgs.fga) + 0.44 * avg(pgs.fta)), 0)
+  ::numeric, 3)                              as ts_pct,
+  -- Effective FG%: credits made threes at 1.5x a two-point make
+  round(
+    (avg(pgs.fgm) + 0.5 * avg(pgs.fg3m)) / nullif(avg(pgs.fga), 0)
+  ::numeric, 3)                              as efg_pct,
+  round(
+    avg(pgs.ast) / nullif(avg(pgs.tov), 0)
+  ::numeric, 2)                              as ast_to_tov,
+  -- Hollinger Game Score: single-number per-game production estimate, averaged
+  round(
+    avg(
+      pgs.pts + 0.4 * pgs.fgm - 0.7 * pgs.fga - 0.4 * (pgs.fta - pgs.ftm)
+      + 0.7 * pgs.oreb + 0.3 * pgs.dreb + pgs.stl + 0.7 * pgs.ast
+      + 0.7 * pgs.blk - 0.4 * pgs.pf - pgs.tov
+    )
+  ::numeric, 1)                              as game_score,
   sum(pgs.pts)                               as pts_total
 from player_game_stats pgs
 join players p on p.player_id = pgs.player_id

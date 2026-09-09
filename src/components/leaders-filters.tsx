@@ -22,7 +22,7 @@ export function LeadersFilters({
   season: string;
   seasonType: string;
   stat: string;
-  mode: "players" | "teams";
+  mode: "players" | "teams" | "grid";
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -39,6 +39,7 @@ export function LeadersFilters({
         <TabsList>
           <TabsTrigger value="players">Players</TabsTrigger>
           <TabsTrigger value="teams">Teams</TabsTrigger>
+          <TabsTrigger value="grid">Heat Table</TabsTrigger>
         </TabsList>
       </Tabs>
 

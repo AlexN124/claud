@@ -9,6 +9,25 @@ export const STAT_OPTIONS = [
   { value: "fg_pct", label: "FG%" },
   { value: "fg3_pct", label: "3P%" },
   { value: "ft_pct", label: "FT%" },
+  { value: "ts_pct", label: "True Shooting %" },
+  { value: "efg_pct", label: "Effective FG%" },
+  { value: "ast_to_tov", label: "Ast/TOV" },
+  { value: "game_score", label: "Game Score" },
+] as const;
+
+// Columns shown in the heat table, in display order. Each maps to a column on
+// player_season_stats and a formatting hint for the heat-map cell renderer.
+export const GRID_STATS = [
+  { value: "pts_pg", label: "PTS", kind: "counting" },
+  { value: "reb_pg", label: "REB", kind: "counting" },
+  { value: "ast_pg", label: "AST", kind: "counting" },
+  { value: "stl_pg", label: "STL", kind: "counting" },
+  { value: "blk_pg", label: "BLK", kind: "counting" },
+  { value: "tov_pg", label: "TOV", kind: "counting-inverse" },
+  { value: "ts_pct", label: "TS%", kind: "pct" },
+  { value: "efg_pct", label: "eFG%", kind: "pct" },
+  { value: "ast_to_tov", label: "AST/TOV", kind: "counting" },
+  { value: "game_score", label: "GmSc", kind: "counting" },
 ] as const;
 
 export type StatKey = (typeof STAT_OPTIONS)[number]["value"];
@@ -37,11 +56,40 @@ export async function getLeaders({
 }) {
   const { data, error } = await supabase
     .from("player_season_stats")
-    .select("player_id, name, games_played, pts_pg, reb_pg, ast_pg, stl_pg, blk_pg, fg_pct, fg3_pct, ft_pct")
+    .select(
+      "player_id, name, games_played, pts_pg, reb_pg, ast_pg, stl_pg, blk_pg, fg_pct, fg3_pct, ft_pct, ts_pct, efg_pct, ast_to_tov, game_score"
+    )
     .eq("season", season)
     .eq("season_type", seasonType)
     .gte("games_played", minGames)
-    .order(stat, { ascending: false })
+    .order(stat, { ascending: false, nullsFirst: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getSeasonGrid({
+  season,
+  seasonType,
+  sortBy = "game_score",
+  minGames = 10,
+  limit = 150,
+}: {
+  season: string;
+  seasonType: string;
+  sortBy?: string;
+  minGames?: number;
+  limit?: number;
+}) {
+  const { data, error } = await supabase
+    .from("player_season_stats")
+    .select(
+      "player_id, name, games_played, pts_pg, reb_pg, ast_pg, stl_pg, blk_pg, tov_pg, ts_pct, efg_pct, ast_to_tov, game_score"
+    )
+    .eq("season", season)
+    .eq("season_type", seasonType)
+    .gte("games_played", minGames)
+    .order(sortBy, { ascending: false, nullsFirst: false })
     .limit(limit);
   if (error) throw error;
   return data ?? [];
