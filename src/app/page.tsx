@@ -15,6 +15,13 @@ export default async function HomePage() {
 
   return (
     <div>
+      <div className="border-b border-accent/20 bg-accent/10">
+        <p className="mx-auto max-w-6xl px-4 py-2.5 text-center text-sm text-foreground/90">
+          <span className="font-medium text-accent">Heads up:</span> the 2025-26 season isn&apos;t
+          in the dataset yet — stats here run through 2024-25.
+        </p>
+      </div>
+
       <section className="relative overflow-hidden border-b border-border/60">
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.07]"
