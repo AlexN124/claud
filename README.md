@@ -4,6 +4,15 @@ An NBA stats explorer built on Next.js, Supabase, and shadcn/ui. It turns 708,68
 player box-score rows (2003-04 through 2024-25) into season leaderboards, career trend charts,
 and team splits.
 
+**Live:** https://hardwood-almanac.vercel.app
+
+## Pages
+
+- **Home** — search-first hero, headline dataset stats, current-season scoring leaders
+- **Leaders** — player and team leaderboards, filterable by season, season type, and stat
+- **Players** — search directory + player detail (career trend chart, season-by-season table)
+- **Teams** — team directory + team detail (brand color banner, season-by-season table)
+
 ## Stack
 
 - **Next.js 16** (App Router) + TypeScript + Tailwind CSS
@@ -25,10 +34,12 @@ Normalized into:
 
 Plus SQL views that drive the app's pages:
 
+- `season_list` — distinct seasons, for the season picker
 - `player_season_stats` — per-player, per-season averages
 - `player_career_stats` — per-player career totals/averages
-- `team_game_stats` — per-team totals for a single game (sum of that game's player rows)
-- `team_season_stats` — per-team, per-season averages
+- `team_season_stats` — per-team, per-season averages (single-pass aggregate over
+  `player_game_stats`, not nested through a per-game view — nesting two full-table
+  aggregations was slow enough to time out on the free compute tier)
 
 Schema lives in `supabase/migrations/0001_schema.sql`.
 
