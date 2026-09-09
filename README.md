@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hardwood Almanac
 
-## Getting Started
+An NBA stats explorer built on Next.js, Supabase, and shadcn/ui. It turns 708,683 individual
+player box-score rows (2003-04 through 2024-25) into season leaderboards, career trend charts,
+and team splits.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Next.js 16** (App Router) + TypeScript + Tailwind CSS
+- **shadcn/ui** components (Button, Card, Table, Select, Tabs, etc.)
+- **Supabase** (Postgres) for data storage, with Row Level Security policies allowing public read
+- **Recharts** for career/season trend charts
+- Deployed on **Vercel**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Data model
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Source data: `NBAALLSTATS.csv`, one row per player per game.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Normalized into:
 
-## Learn More
+- `teams` — team_id, abbreviation, city
+- `players` — player_id, name, nickname
+- `games` — game_id, season, season_type
+- `player_game_stats` — full box score line per player per game (FK to the three tables above)
 
-To learn more about Next.js, take a look at the following resources:
+Plus SQL views that drive the app's pages:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `player_season_stats` — per-player, per-season averages
+- `player_career_stats` — per-player career totals/averages
+- `team_game_stats` — per-team totals for a single game (sum of that game's player rows)
+- `team_season_stats` — per-team, per-season averages
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Schema lives in `supabase/migrations/0001_schema.sql`.
 
-## Deploy on Vercel
+## Setup
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Create a Supabase project.
+2. Apply the schema:
+   ```bash
+   DATABASE_URL="postgresql://...your-connection-string..." node scripts/apply-schema.mjs
+   ```
+3. Transform `NBAALLSTATS.csv` into the normalized load CSVs (see `scripts/load-data.mjs` for the
+   expected `DATA_DIR` layout: `teams.csv`, `players.csv`, `games.csv`, `player_game_stats.csv`).
+4. Load the data:
+   ```bash
+   DATABASE_URL="postgresql://...your-connection-string..." node scripts/load-data.mjs
+   ```
+5. Copy `.env.local.example` to `.env.local` and fill in your Supabase project URL + publishable
+   (anon) key.
+6. `npm install && npm run dev`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploying
+
+Connect the GitHub repo to Vercel and set `NEXT_PUBLIC_SUPABASE_URL` and
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` as project environment variables.
