@@ -15,7 +15,7 @@ type SeasonRow = {
   pts_pg: number | null;
 };
 
-export function TeamTrendChart({ data }: { data: SeasonRow[] }) {
+export function TeamTrendChart({ data, color = "#f97316" }: { data: SeasonRow[]; color?: string }) {
   return (
     <ResponsiveContainer width="100%" height={240}>
       <LineChart data={data} margin={{ top: 8, right: 16, left: -16, bottom: 0 }}>
@@ -31,7 +31,7 @@ export function TeamTrendChart({ data }: { data: SeasonRow[] }) {
             fontSize: 13,
           }}
         />
-        <Line type="monotone" dataKey="pts_pg" name="Pts/g" stroke="#f97316" strokeWidth={2} dot={false} />
+        <Line type="monotone" dataKey="pts_pg" name="Pts/g" stroke={color} strokeWidth={2} dot={false} />
       </LineChart>
     </ResponsiveContainer>
   );

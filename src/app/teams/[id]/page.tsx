@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { TeamTrendChart } from "@/components/team-trend-chart";
 import { TeamLogo } from "@/components/team-logo";
-import { teamColor } from "@/lib/team-colors";
+import { teamColor, accentColor } from "@/lib/team-colors";
 import { getTeam } from "@/lib/data";
 
 export default async function TeamPage(props: PageProps<"/teams/[id]">) {
@@ -27,21 +27,21 @@ export default async function TeamPage(props: PageProps<"/teams/[id]">) {
   const { team, seasons } = result;
   const regularSeasons = seasons.filter((s) => s.season_type === "Regular Season");
   const { primary, secondary } = teamColor(team.abbreviation);
+  const accent = accentColor(team.abbreviation);
 
   return (
-    <div>
-      <div
-        className="border-b border-border/60"
-        style={{
-          background: `linear-gradient(135deg, ${primary}22, transparent 60%)`,
-          borderBottomColor: `${primary}55`,
-        }}
-      >
+    <div
+      className="min-h-screen"
+      style={{
+        background: `linear-gradient(180deg, ${accent}2e 0%, ${accent}12 340px, transparent 800px)`,
+      }}
+    >
+      <div className="border-b border-border/60" style={{ borderBottomColor: `${accent}55` }}>
         <div className="mx-auto flex max-w-4xl items-center gap-5 px-4 py-10">
           <TeamLogo teamId={teamId} abbreviation={team.abbreviation} size={72} />
           <div>
             <h1 className="font-heading text-3xl font-bold tracking-tight">
-              {team.city} <span style={{ color: primary }}>{team.abbreviation}</span>
+              {team.city} <span style={{ color: accent }}>{team.abbreviation}</span>
             </h1>
             <div className="mt-2 flex gap-1.5">
               <span
@@ -58,16 +58,16 @@ export default async function TeamPage(props: PageProps<"/teams/[id]">) {
       </div>
 
       <div className="mx-auto max-w-4xl px-4 py-10">
-        <Card>
+        <Card className="bg-card/70 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="font-heading text-base">Points per game by season</CardTitle>
           </CardHeader>
           <CardContent>
-            <TeamTrendChart data={regularSeasons} />
+            <TeamTrendChart data={regularSeasons} color={accent} />
           </CardContent>
         </Card>
 
-        <Card className="mt-8">
+        <Card className="mt-8 bg-card/70 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="font-heading text-base">Season by season</CardTitle>
           </CardHeader>
@@ -94,7 +94,12 @@ export default async function TeamPage(props: PageProps<"/teams/[id]">) {
                       {s.season_type === "Regular Season" ? "Reg" : "Playoffs"}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">{s.games_played}</TableCell>
-                    <TableCell className="text-right font-mono tabular-nums text-accent">{s.pts_pg}</TableCell>
+                    <TableCell
+                      className="text-right font-mono tabular-nums"
+                      style={{ color: accent }}
+                    >
+                      {s.pts_pg}
+                    </TableCell>
                     <TableCell className="text-right tabular-nums">{s.reb_pg}</TableCell>
                     <TableCell className="text-right tabular-nums">{s.ast_pg}</TableCell>
                     <TableCell className="text-right tabular-nums">{s.stl_pg}</TableCell>

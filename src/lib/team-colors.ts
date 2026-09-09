@@ -34,3 +34,24 @@ export const TEAM_COLORS: Record<string, { primary: string; secondary: string }>
 export function teamColor(abbreviation: string) {
   return TEAM_COLORS[abbreviation] ?? { primary: "#3f3f46", secondary: "#71717a" };
 }
+
+// How far a color sits from pure black — a saturated-but-dark color (e.g. Lakers
+// purple #552583) still reads fine as text on a near-black background because its
+// channels are distinct from 0; true near-black (e.g. the Nets' #000000) doesn't.
+// Perceptual luminance would flag both as "too dark" and lighten the Lakers purple
+// unnecessarily, so use the strongest channel instead.
+function maxChannel(hex: string) {
+  const n = parseInt(hex.slice(1), 16);
+  return Math.max((n >> 16) & 255, (n >> 8) & 255, n & 255);
+}
+
+// Primary/secondary are brand colors, not chosen for contrast — some (e.g. the Nets'
+// black) are unreadable as text or a chart line against this app's dark background.
+// Pick whichever brand color is legible, falling back to a light neutral if neither is.
+export function accentColor(abbreviation: string) {
+  const { primary, secondary } = teamColor(abbreviation);
+  const MIN_CHANNEL = 50;
+  if (maxChannel(primary) >= MIN_CHANNEL) return primary;
+  if (maxChannel(secondary) >= MIN_CHANNEL) return secondary;
+  return "#e4e4e7";
+}
