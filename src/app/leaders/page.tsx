@@ -1,4 +1,6 @@
 import { LeadersFilters } from "@/components/leaders-filters";
+import { PlayerAvatar } from "@/components/player-avatar";
+import { TeamLogo } from "@/components/team-logo";
 import {
   Table,
   TableBody,
@@ -23,7 +25,7 @@ export default async function LeadersPage(props: PageProps<"/leaders">) {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      <h1 className="text-2xl font-bold tracking-tight">Leaderboards</h1>
+      <h1 className="font-heading text-2xl font-bold tracking-tight">Leaderboards</h1>
       <p className="mt-1 text-muted-foreground">
         Ranked across every {seasonType.toLowerCase()} game logged for {season}.
       </p>
@@ -70,7 +72,11 @@ async function PlayerLeadersTable({
           <TableRow key={r.player_id}>
             <TableCell className="text-muted-foreground">{i + 1}</TableCell>
             <TableCell>
-              <Link href={`/players/${r.player_id}`} className="font-medium hover:text-accent">
+              <Link
+                href={`/players/${r.player_id}`}
+                className="flex items-center gap-3 font-medium hover:text-accent"
+              >
+                <PlayerAvatar playerId={r.player_id} name={r.name} size={32} />
                 {r.name}
               </Link>
             </TableCell>
@@ -111,7 +117,11 @@ async function TeamLeadersTable({ season, seasonType }: { season: string; season
           <TableRow key={r.team_id}>
             <TableCell className="text-muted-foreground">{i + 1}</TableCell>
             <TableCell>
-              <Link href={`/teams/${r.team_id}`} className="font-medium hover:text-accent">
+              <Link
+                href={`/teams/${r.team_id}`}
+                className="flex items-center gap-3 font-medium hover:text-accent"
+              >
+                <TeamLogo teamId={r.team_id} abbreviation={r.abbreviation} size={28} />
                 {r.city} {r.abbreviation}
               </Link>
             </TableCell>

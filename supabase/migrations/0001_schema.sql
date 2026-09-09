@@ -94,39 +94,28 @@ from player_game_stats pgs
 join players p on p.player_id = pgs.player_id
 group by pgs.player_id, p.name;
 
--- Per-team, per-game totals (sum of that game's box score rows for the team)
-create or replace view team_game_stats as
-select
-  game_id,
-  team_id,
-  sum(pts)  as team_pts,
-  sum(reb)  as team_reb,
-  sum(ast)  as team_ast,
-  sum(stl)  as team_stl,
-  sum(blk)  as team_blk,
-  sum(tov)  as team_tov
-from player_game_stats
-group by game_id, team_id;
-
 -- Per-team, per-season averages (drives team leaderboards & team pages)
+-- Single-pass aggregation: summing player rows directly and dividing by distinct
+-- game count is equivalent to averaging per-game team totals, but far cheaper than
+-- a nested (per-game -> per-season) aggregation over 700k+ rows.
 create or replace view team_season_stats as
 select
-  tgs.team_id,
+  pgs.team_id,
   t.abbreviation,
   t.city,
   g.season,
   g.season_type,
-  count(*)                                as games_played,
-  round(avg(tgs.team_pts)::numeric, 1)    as pts_pg,
-  round(avg(tgs.team_reb)::numeric, 1)    as reb_pg,
-  round(avg(tgs.team_ast)::numeric, 1)    as ast_pg,
-  round(avg(tgs.team_stl)::numeric, 1)    as stl_pg,
-  round(avg(tgs.team_blk)::numeric, 1)    as blk_pg,
-  round(avg(tgs.team_tov)::numeric, 1)    as tov_pg
-from team_game_stats tgs
-join teams t on t.team_id = tgs.team_id
-join games g on g.game_id = tgs.game_id
-group by tgs.team_id, t.abbreviation, t.city, g.season, g.season_type;
+  count(distinct pgs.game_id)                                    as games_played,
+  round(sum(pgs.pts)::numeric / count(distinct pgs.game_id), 1)   as pts_pg,
+  round(sum(pgs.reb)::numeric / count(distinct pgs.game_id), 1)   as reb_pg,
+  round(sum(pgs.ast)::numeric / count(distinct pgs.game_id), 1)   as ast_pg,
+  round(sum(pgs.stl)::numeric / count(distinct pgs.game_id), 1)   as stl_pg,
+  round(sum(pgs.blk)::numeric / count(distinct pgs.game_id), 1)   as blk_pg,
+  round(sum(pgs.tov)::numeric / count(distinct pgs.game_id), 1)   as tov_pg
+from player_game_stats pgs
+join teams t on t.team_id = pgs.team_id
+join games g on g.game_id = pgs.game_id
+group by pgs.team_id, t.abbreviation, t.city, g.season, g.season_type;
 
 alter table teams enable row level security;
 alter table players enable row level security;

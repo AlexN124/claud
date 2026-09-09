@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { HeroSearch } from "@/components/hero-search";
+import { PlayerAvatar } from "@/components/player-avatar";
 import { getHomeStats, getLeaders, getSeasons } from "@/lib/data";
 
 export default async function HomePage() {
@@ -8,30 +10,40 @@ export default async function HomePage() {
   const latestSeason = seasons[0];
   const [stats, topScorers] = await Promise.all([
     getHomeStats(),
-    getLeaders({ season: latestSeason, seasonType: "Regular Season", stat: "pts_pg", limit: 5 }),
+    getLeaders({ season: latestSeason, seasonType: "Regular Season", stat: "pts_pg", limit: 6 }),
   ]);
 
   return (
     <div>
-      <section className="border-b border-border/60 bg-gradient-to-b from-secondary/40 to-background">
-        <div className="mx-auto max-w-6xl px-4 py-20">
+      <section className="relative overflow-hidden border-b border-border/60">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+        <div className="relative mx-auto max-w-6xl px-4 py-20">
           <p className="mb-3 text-sm font-medium uppercase tracking-widest text-accent">
             22 seasons · one box score at a time
           </p>
-          <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
+          <h1 className="max-w-3xl font-heading text-4xl font-bold tracking-tight sm:text-5xl">
             Every player, every game, every stat line since 2003.
           </h1>
           <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
             Hardwood Almanac turns {stats.statRowCount.toLocaleString()} individual NBA box
-            score rows into season leaderboards, career arcs, and team splits &mdash; built on
-            Supabase and rendered with Next.js.
+            score rows into season leaderboards, career arcs, and team splits.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button size="lg" render={<Link href="/leaders" />}>
+
+          <HeroSearch />
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button size="lg" nativeButton={false} render={<Link href="/leaders" />}>
               Browse leaderboards
             </Button>
-            <Button size="lg" variant="outline" render={<Link href="/players" />}>
-              Find a player
+            <Button size="lg" variant="outline" nativeButton={false} render={<Link href="/teams" />}>
+              Explore teams
             </Button>
           </div>
         </div>
@@ -45,30 +57,28 @@ export default async function HomePage() {
 
       <section className="mx-auto max-w-6xl px-4 pb-20">
         <div className="mb-4 flex items-baseline justify-between">
-          <h2 className="text-xl font-semibold">
-            {latestSeason} scoring leaders
-          </h2>
+          <h2 className="font-heading text-xl font-bold">{latestSeason} scoring leaders</h2>
           <Link href="/leaders" className="text-sm text-accent hover:underline">
             View all leaderboards &rarr;
           </Link>
         </div>
-        <Card>
-          <CardContent className="divide-y divide-border/60 p-0">
-            {topScorers.map((p, i) => (
-              <Link
-                key={p.player_id}
-                href={`/players/${p.player_id}`}
-                className="flex items-center justify-between px-5 py-3 transition-colors hover:bg-secondary/60"
-              >
-                <div className="flex items-center gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {topScorers.map((p, i) => (
+            <Link key={p.player_id} href={`/players/${p.player_id}`}>
+              <Card className="h-full transition-colors hover:border-accent/60">
+                <CardContent className="flex items-center gap-3 py-4">
                   <span className="w-5 text-sm font-mono text-muted-foreground">{i + 1}</span>
-                  <span className="font-medium">{p.name}</span>
-                </div>
-                <span className="font-mono text-sm text-accent">{p.pts_pg} pts/g</span>
-              </Link>
-            ))}
-          </CardContent>
-        </Card>
+                  <PlayerAvatar playerId={p.player_id} name={p.name} size={44} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{p.name}</p>
+                    <p className="text-xs text-muted-foreground">{p.games_played} games</p>
+                  </div>
+                  <span className="font-mono text-lg font-semibold text-accent">{p.pts_pg}</span>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
       </section>
     </div>
   );
@@ -81,7 +91,7 @@ function StatCard({ label, value }: { label: string; value: string }) {
         <CardTitle className="text-sm font-normal text-muted-foreground">{label}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-3xl font-bold tabular-nums">{value}</p>
+        <p className="font-heading text-3xl font-bold tabular-nums">{value}</p>
       </CardContent>
     </Card>
   );

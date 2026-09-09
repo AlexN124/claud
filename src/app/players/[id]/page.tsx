@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PlayerTrendChart } from "@/components/player-trend-chart";
+import { PlayerAvatar } from "@/components/player-avatar";
 import { getPlayer } from "@/lib/data";
 
 export default async function PlayerPage(props: PageProps<"/players/[id]">) {
@@ -28,10 +29,15 @@ export default async function PlayerPage(props: PageProps<"/players/[id]">) {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      <h1 className="text-2xl font-bold tracking-tight">{player.name}</h1>
-      {player.nickname && player.nickname !== player.name && (
-        <p className="text-muted-foreground">&ldquo;{player.nickname}&rdquo;</p>
-      )}
+      <div className="flex items-center gap-5">
+        <PlayerAvatar playerId={playerId} name={player.name} size={84} className="ring-2 ring-border" />
+        <div>
+          <h1 className="font-heading text-3xl font-bold tracking-tight">{player.name}</h1>
+          {player.nickname && player.nickname !== player.name && (
+            <p className="text-muted-foreground">&ldquo;{player.nickname}&rdquo;</p>
+          )}
+        </div>
+      </div>
 
       {career && (
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -44,7 +50,7 @@ export default async function PlayerPage(props: PageProps<"/players/[id]">) {
 
       <Card className="mt-8">
         <CardHeader>
-          <CardTitle className="text-base">Career trend (regular season)</CardTitle>
+          <CardTitle className="font-heading text-base">Career trend (regular season)</CardTitle>
         </CardHeader>
         <CardContent>
           <PlayerTrendChart data={regularSeasons} />
@@ -53,11 +59,11 @@ export default async function PlayerPage(props: PageProps<"/players/[id]">) {
 
       <Card className="mt-8">
         <CardHeader>
-          <CardTitle className="text-base">Season by season</CardTitle>
+          <CardTitle className="font-heading text-base">Season by season</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="max-h-[420px] overflow-auto p-0">
           <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 z-10 bg-card">
               <TableRow>
                 <TableHead>Season</TableHead>
                 <TableHead>Type</TableHead>
@@ -101,7 +107,7 @@ function StatBox({ label, value }: { label: string; value: number | string }) {
     <Card>
       <CardContent className="py-4">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-        <p className="mt-1 text-2xl font-bold tabular-nums">{value}</p>
+        <p className="mt-1 font-heading text-2xl font-bold tabular-nums">{value}</p>
       </CardContent>
     </Card>
   );

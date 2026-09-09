@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { PlayerSearch } from "@/components/player-search";
+import { PlayerAvatar } from "@/components/player-avatar";
 import { searchPlayers } from "@/lib/data";
 
 export default async function PlayersPage(props: PageProps<"/players">) {
@@ -10,7 +11,7 @@ export default async function PlayersPage(props: PageProps<"/players">) {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      <h1 className="text-2xl font-bold tracking-tight">Players</h1>
+      <h1 className="font-heading text-2xl font-bold tracking-tight">Players</h1>
       <p className="mt-1 text-muted-foreground">
         {q ? `Results for "${q}"` : "Search across every player tracked since 2003-04."}
       </p>
@@ -25,12 +26,15 @@ export default async function PlayersPage(props: PageProps<"/players">) {
             <Link
               key={p.player_id}
               href={`/players/${p.player_id}`}
-              className="rounded-md px-3 py-2 transition-colors hover:bg-secondary/60"
+              className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-secondary/60"
             >
-              <span className="font-medium">{p.name}</span>
-              {p.nickname && p.nickname !== p.name && (
-                <span className="ml-2 text-sm text-muted-foreground">&ldquo;{p.nickname}&rdquo;</span>
-              )}
+              <PlayerAvatar playerId={p.player_id} name={p.name} size={36} />
+              <span>
+                <span className="font-medium">{p.name}</span>
+                {p.nickname && p.nickname !== p.name && (
+                  <span className="ml-2 text-sm text-muted-foreground">&ldquo;{p.nickname}&rdquo;</span>
+                )}
+              </span>
             </Link>
           ))}
           {players.length === 0 && (
