@@ -52,6 +52,12 @@ create index if not exists idx_pgs_player on player_game_stats (player_id);
 create index if not exists idx_pgs_team on player_game_stats (team_id);
 create index if not exists idx_pgs_game on player_game_stats (game_id);
 
+-- Distinct list of seasons (drives the season picker; querying `games` directly
+-- and de-duping client-side silently truncates to whatever the PostgREST row cap
+-- returns, which can be just the most recent season)
+create or replace view season_list as
+select distinct season from games order by season desc;
+
 -- Per-player, per-season aggregate (drives leaderboards & player pages)
 create or replace view player_season_stats as
 select

@@ -15,11 +15,11 @@ export type StatKey = (typeof STAT_OPTIONS)[number]["value"];
 
 export async function getSeasons() {
   const { data, error } = await supabase
-    .from("games")
+    .from("season_list")
     .select("season")
     .order("season", { ascending: false });
   if (error) throw error;
-  return Array.from(new Set((data ?? []).map((g) => g.season)));
+  return (data ?? []).map((g) => g.season);
 }
 
 export async function getLeaders({
